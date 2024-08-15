@@ -1,4 +1,4 @@
-import '../styles/globals.css';
+import '../styles/global.css';
 
 export const metadata = {
   title: 'Flashcard SaaS - Revolutionize Your Learning',
@@ -9,22 +9,26 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <header>
-          <nav>
-            <div className="logo">
-              <a href="/">Flashcard SaaS</a>
-            </div>
-            <div className="menu">
-              <a href="/#features">Features</a>
-              <a href="/#pricing">Pricing</a>
-              <a href="/contact">Contact</a>
-            </div>
-          </nav>
-        </header>
-        <main>{children}</main>
-        <footer>
-          <p>&copy; 2024 Flashcard SaaS. All rights reserved.</p>
-        </footer>
+        <div className="page-container">
+          <header>
+            <nav>
+              <div className="logo">
+                <a href="/">Flashcard SaaS</a>
+              </div>
+              <div className="menu">
+                <a href="/features">Features</a>
+                <a href="/pricing">Pricing</a>
+                <a href="/contact">Contact</a>
+                <a href="/sign-in">Sign In</a>
+                <a href="/sign-up">Sign Up</a>
+              </div>
+            </nav>
+          </header>
+          <main className="content-wrap">{children}</main>
+          <footer className="footer">
+            <p>&copy; 2024 Flashcard SaaS. All rights reserved.</p>
+          </footer>
+        </div>
       </body>
     </html>
   );
