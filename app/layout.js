@@ -4,12 +4,13 @@ import React, { useState } from 'react';
 import { 
   ClerkProvider,  
   SignIn,
-  SignUp
+  SignUp,
+  SignedOut,
+  SignedIn,
+  UserButton
 } from '@clerk/nextjs';
 import { Container, Typography, Button, Modal, Box } from '@mui/material';
 import '../styles/global.css';
-
-
 
 export default function RootLayout({ children }) {
   const [openSignIn, setOpenSignIn] = useState(false);
@@ -29,8 +30,16 @@ export default function RootLayout({ children }) {
                   <a href="/features">Features</a>
                   <a href="/pricing">Pricing</a>
                   <a href="/contact">Contact</a>
-                  <Button onClick={() => setOpenSignIn(true)}>Sign In</Button>
-                  <Button onClick={() => setOpenSignUp(true)}>Sign Up</Button>
+                  <SignedOut>
+                    <Button onClick={() => setOpenSignIn(true)}>Sign In</Button>
+                    <Button onClick={() => setOpenSignUp(true)}>Sign Up</Button>
+                  </SignedOut>
+                  <SignedIn>
+                    <a href="/dashboard">Dashboard</a>
+                    <a href="/generate">Generate</a>
+                    <a href="/flashcards">Flashcards</a>
+                    <UserButton />
+                  </SignedIn>
                 </div>
               </nav>
             </header>
@@ -46,6 +55,7 @@ export default function RootLayout({ children }) {
                 bgcolor: 'background.paper',
                 boxShadow: 24,
                 p: 4,
+                padding: '0px',
                 borderRadius: '8px',
               }}
             >
@@ -63,6 +73,7 @@ export default function RootLayout({ children }) {
                 bgcolor: 'background.paper',
                 boxShadow: 24,
                 p: 4,
+                padding: '0px',
                 borderRadius: '8px',
               }}
             >
