@@ -3,24 +3,34 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Container, Grid, Card, CardActionArea, CardContent, Typography, Box } from '@mui/material';
+import { useUser } from '@clerk/nextjs';
+import { collection, doc, getDocs } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 
 export default function Flashcard() {
   const [flashcards, setFlashcards] = useState([]);
   const [flipped, setFlipped] = useState({});
   const searchParams = useSearchParams();
   const setId = searchParams.get('id');
-  const router = useRouter();
+  const { user } = useUser();
 
   useEffect(() => {
-    if (!setId) return;
+    if (!setId || !user) return;
 
     async function getFlashcards() {
-     
+      const colRef = collection(doc(collection(db, 'users'), user.id), setId);
+      const docs = await getDocs(colRef);
+
+      const flashcards = [];
+      docs.forEach((doc) => {
+        flashcards.push({ id: doc.id, ...doc.data() });
+      });
+
       setFlashcards(flashcards);
     }
 
     getFlashcards();
-  }, [setId]);
+  }, [setId, user]);
 
   const handleCardClick = (id) => {
     setFlipped((prev) => ({

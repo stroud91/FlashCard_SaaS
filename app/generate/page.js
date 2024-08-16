@@ -1,11 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Container, TextField, Button, Typography, Box, Grid, Card, CardContent } from '@mui/material';
+import { Container, TextField, Button, Typography, Box, Grid, Card, CardContent, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { collection, doc, writeBatch, getDoc } from 'firebase/firestore';
+import { db } from '../../config/firebase';  
+import { useUser } from '@clerk/nextjs';
 
 export default function Generate() {
   const [text, setText] = useState('');
   const [flashcards, setFlashcards] = useState([]);
+  const [setName, setSetName] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const { user } = useUser();
 
   const handleSubmit = async () => {
     if (!text.trim()) {
@@ -28,6 +34,43 @@ export default function Generate() {
     } catch (error) {
       console.error('Error generating flashcards:', error);
       alert('An error occurred while generating flashcards. Please try again.');
+    }
+  };
+
+  const handleOpenDialog = () => setDialogOpen(true);
+  const handleCloseDialog = () => setDialogOpen(false);
+
+  const saveFlashcards = async () => {
+    if (!setName.trim()) {
+      alert('Please enter a name for your flashcard set.');
+      return;
+    }
+
+    try {
+      const userDocRef = doc(collection(db, 'users'), user.id);
+      const userDocSnap = await getDoc(userDocRef);
+
+      const batch = writeBatch(db);
+
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        const updatedSets = [...(userData.flashcardSets || []), { name: setName }];
+        batch.update(userDocRef, { flashcardSets: updatedSets });
+      } else {
+        batch.set(userDocRef, { flashcardSets: [{ name: setName }] });
+      }
+
+      const setDocRef = doc(collection(userDocRef, 'flashcardSets'), setName);
+      batch.set(setDocRef, { flashcards });
+
+      await batch.commit();
+
+      alert('Flashcards saved successfully!');
+      handleCloseDialog();
+      setSetName('');
+    } catch (error) {
+      console.error('Error saving flashcards:', error);
+      alert('An error occurred while saving flashcards. Please try again.');
     }
   };
 
@@ -70,8 +113,36 @@ export default function Generate() {
               </Grid>
             ))}
           </Grid>
+          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+            <Button variant="contained" color="primary" onClick={handleOpenDialog}>
+              Save Flashcards
+            </Button>
+          </Box>
         </Box>
       )}
+      <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle>Save Flashcard Set</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please enter a name for your flashcard set.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Set Name"
+            type="text"
+            fullWidth
+            value={setName}
+            onChange={(e) => setSetName(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={saveFlashcards} color="primary">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }
