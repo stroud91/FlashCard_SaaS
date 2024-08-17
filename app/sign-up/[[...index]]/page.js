@@ -1,31 +1,35 @@
 'use client';
 
 import React from 'react';
-import { Container, Box, Typography, AppBar, Toolbar, Button } from '@mui/material';
 import { SignUp } from '@clerk/nextjs';
-import Link from 'next/link';
+import { Modal, Box } from '@mui/material';
+import { useRouter } from 'next/navigation';
 
 export default function SignUpPage() {
+  const router = useRouter();
+
+  const handleClose = () => {
+    router.push('/'); 
+  };
+
   return (
-    <>
-      <AppBar position="static" sx={{ backgroundColor: '#3f51b5' }}>
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Flashcard SaaS
-          </Typography>
-          <Button color="inherit">
-            <Link href="/sign-in" passHref>
-              Sign In
-            </Link>
-          </Button>
-        </Toolbar>
-      </AppBar>
-      <Container maxWidth="sm" sx={{ textAlign: 'center', my: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Sign Up
-        </Typography>
+    <Modal open={true} onClose={handleClose}>
+      <Box 
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 400,
+          bgcolor: 'background.paper',
+          boxShadow: 24,
+          p: 4,
+          padding: '0px',
+          borderRadius: '8px',
+        }}
+      >
         <SignUp />
-      </Container>
-    </>
+      </Box>
+    </Modal>
   );
 }

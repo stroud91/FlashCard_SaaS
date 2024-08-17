@@ -18,62 +18,66 @@ export default function Generate() {
 
   const handleSubmit = async () => {
     if (!text.trim()) {
-        alert('Please enter some text to generate flashcards.');
-        return;
+      alert('Please enter some text to generate flashcards.');
+      return;
     }
-
-    setLoading(true); 
+  
+    setLoading(true); // Start loading
+  
     try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
-            },
-            body: JSON.stringify({
-                model: 'gpt-3.5-turbo',
-                messages: [
-                    { role: 'system', content: 'You are a helpful assistant.' },
-                    { role: 'user', content: `Generate at least 6 flashcards for the following topic: ${text}` }
-                ],
-                max_tokens: 300, 
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            { role: 'system', content: 'You are a helpful assistant.' },
+            { role: 'user', content: `Generate at least 6 flashcards for the following topic: ${text}` }
+          ],
+          max_tokens: 300, // Increase token limit to get more content
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      const flashcardsText = data.choices[0]?.message?.content?.trim() || 'No response from AI.';
+  
+      console.log('Flashcards Text:', flashcardsText); // Debugging output
+  
+      // Enhanced parsing logic
+      const flashcardsData = [];
+      const lines = flashcardsText.split('\n').map(line => line.trim());
+  
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith('Front:')) {
+          const front = lines[i].replace('Front:', '').trim();
+          const back = lines[i + 1]?.startsWith('Back:') ? lines[i + 1].replace('Back:', '').trim() : '';
+          if (front && back) {
+            flashcardsData.push({ front, back });
+          }
         }
-
-        const data = await response.json();
-        const flashcardsText = data.choices[0]?.message?.content?.trim() || 'No response from AI.';
-
-        console.log('Flashcards Text:', flashcardsText); 
-
-
-        const flashcardsData = flashcardsText.split('\n\n').map((block, i, arr) => {
-            const nextBlock = arr[i + 1];
-            if (nextBlock && !nextBlock.startsWith(i + 2 + '.')) {
-                return {
-                    front: block.trim(),
-                    back: nextBlock.trim()
-                };
-            }
-            return null;
-        }).filter(Boolean);
-
-        console.log('Parsed Flashcards:', flashcardsData); 
-
-        
-        const flashcardsToDisplay = flashcardsData.slice(0, 6);
-
-        setFlashcards(flashcardsToDisplay);
+      }
+  
+      console.log('Parsed Flashcards:', flashcardsData); // Debugging output
+  
+      // Ensure at least 6 flashcards
+      const flashcardsToDisplay = flashcardsData.slice(0, 6);
+  
+      setFlashcards(flashcardsToDisplay);
     } catch (error) {
-        console.error('Error generating flashcards:', error);
-        alert('An error occurred while generating flashcards. Please try again.');
+      console.error('Error generating flashcards:', error);
+      alert('An error occurred while generating flashcards. Please try again.');
     } finally {
-        setLoading(false); 
+      setLoading(false); // End loading
     }
-};
+  };
+  
 
 
   const handleOpenDialog = () => setDialogOpen(true);
