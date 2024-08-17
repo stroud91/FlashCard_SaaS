@@ -18,55 +18,63 @@ export default function Generate() {
 
   const handleSubmit = async () => {
     if (!text.trim()) {
-      alert('Please enter some text to generate flashcards.');
-      return;
+        alert('Please enter some text to generate flashcards.');
+        return;
     }
 
     setLoading(true); 
-
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [
-            { role: 'system', content: 'You are a helpful assistant.' },
-            { role: 'user', content: `Generate at least 6 flashcards for the following topic: ${text}` }
-          ],
-          max_tokens: 300, 
-        }),
-      });
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
+            },
+            body: JSON.stringify({
+                model: 'gpt-3.5-turbo',
+                messages: [
+                    { role: 'system', content: 'You are a helpful assistant.' },
+                    { role: 'user', content: `Generate at least 6 flashcards for the following topic: ${text}` }
+                ],
+                max_tokens: 300, 
+            }),
+        });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const flashcardsText = data.choices[0]?.message?.content?.trim() || 'No response from AI.';
-
-     
-      const flashcardsData = flashcardsText.split('\n').reduce((acc, curr, i, arr) => {
-        if (curr.startsWith('Q:')) {
-          acc.push({ front: curr.slice(3).trim(), back: arr[i + 1]?.slice(3).trim() });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return acc;
-      }, []);
 
-    
-      const flashcardsToDisplay = flashcardsData.slice(0, 6);
+        const data = await response.json();
+        const flashcardsText = data.choices[0]?.message?.content?.trim() || 'No response from AI.';
 
-      setFlashcards(flashcardsToDisplay);
+        console.log('Flashcards Text:', flashcardsText); 
+
+
+        const flashcardsData = flashcardsText.split('\n\n').map((block, i, arr) => {
+            const nextBlock = arr[i + 1];
+            if (nextBlock && !nextBlock.startsWith(i + 2 + '.')) {
+                return {
+                    front: block.trim(),
+                    back: nextBlock.trim()
+                };
+            }
+            return null;
+        }).filter(Boolean);
+
+        console.log('Parsed Flashcards:', flashcardsData); 
+
+        
+        const flashcardsToDisplay = flashcardsData.slice(0, 6);
+
+        setFlashcards(flashcardsToDisplay);
     } catch (error) {
-      console.error('Error generating flashcards:', error);
-      alert('An error occurred while generating flashcards. Please try again.');
+        console.error('Error generating flashcards:', error);
+        alert('An error occurred while generating flashcards. Please try again.');
     } finally {
-      setLoading(false); 
+        setLoading(false); 
     }
-  };
+};
+
 
   const handleOpenDialog = () => setDialogOpen(true);
   const handleCloseDialog = () => setDialogOpen(false);
