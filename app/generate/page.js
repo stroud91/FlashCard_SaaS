@@ -1,5 +1,4 @@
 'use client';
-
 import { useState } from 'react';
 import { Container, TextField, Button, Typography, Box, Grid, Card, CardContent, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { collection, doc, writeBatch, getDoc } from 'firebase/firestore';
@@ -11,6 +10,7 @@ export default function Generate() {
   const [flashcards, setFlashcards] = useState([]);
   const [setName, setSetName] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(false); 
   const { user } = useUser();
 
   const handleSubmit = async () => {
@@ -19,21 +19,46 @@ export default function Generate() {
       return;
     }
 
+    setLoading(true);
+
     try {
-      const response = await fetch('/api/generate', {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
-        body: text,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            { role: 'system', content: 'You are a helpful assistant.' },
+            { role: 'user', content: `Generate flashcards for the following topic: ${text}` }
+          ],
+          max_tokens: 150,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate flashcards');
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
-      setFlashcards(data);
+      const flashcardsText = data.choices[0]?.message?.content?.trim() || 'No response from AI.';
+
+
+      const flashcardsData = flashcardsText.split('\n').reduce((acc, curr, i, arr) => {
+        if (curr.startsWith('Q:')) {
+          acc.push({ front: curr.slice(3).trim(), back: arr[i + 1]?.slice(3).trim() });
+        }
+        return acc;
+      }, []);
+
+      setFlashcards(flashcardsData);
     } catch (error) {
       console.error('Error generating flashcards:', error);
       alert('An error occurred while generating flashcards. Please try again.');
+    } finally {
+      setLoading(false); 
     }
   };
 
@@ -83,15 +108,22 @@ export default function Generate() {
         <TextField
           value={text}
           onChange={(e) => setText(e.target.value)}
-          label="Enter text"
+          label="Enter a topic"
           fullWidth
           multiline
           rows={4}
           variant="outlined"
           sx={{ mb: 2 }}
+          disabled={loading}
         />
-        <Button variant="contained" color="primary" onClick={handleSubmit} fullWidth>
-          Generate Flashcards
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+          fullWidth
+          disabled={loading} 
+        >
+          {loading ? 'Generating...' : 'Generate Flashcards'}
         </Button>
       </Box>
       {flashcards.length > 0 && (

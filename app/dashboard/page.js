@@ -2,9 +2,19 @@
 
 import { useRouter } from 'next/navigation';
 import { Container, Grid, Typography, Card, CardActionArea, CardContent } from '@mui/material';
-
+import { useAuth } from '@clerk/nextjs';
+import { useEffect } from 'react';
 export default function Dashboard() {
   const router = useRouter();
+
+  const { isSignedIn } = useAuth();
+
+  useEffect(() => {
+    if (!isSignedIn) {
+      router.push('/sign-in');
+    }
+  }, [isSignedIn, router]);
+
 
   const handleNewSet = () => {
     router.push('/generate');
