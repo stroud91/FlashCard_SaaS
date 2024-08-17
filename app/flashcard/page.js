@@ -3,11 +3,11 @@ import { useState, useEffect } from 'react';
 import { Container, Grid, Card, CardActionArea, CardContent, Typography, Box } from '@mui/material';
 import './flashcardStyles.css';  
 
-export default function Flashcard({ front, back }) {
+function Flashcard({ front, back }) {
     const [flipped, setFlipped] = useState(false);
 
     const handleCardClick = () => {
-        setFlipped(!flipped);  // Toggle the flipped state
+        setFlipped(!flipped);  
     };
 
     return (
@@ -33,3 +33,5 @@ export default function Flashcard({ front, back }) {
         </Container>
     );
 }
+
+export default Flashcard;
