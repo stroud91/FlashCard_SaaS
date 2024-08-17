@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Container, Grid, Card, CardActionArea, CardContent, Typography, Box } from '@mui/material';
 import { useUser } from '@clerk/nextjs';
 import { collection, doc, getDocs } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { db } from '../../config/firebase';
+import './flashcardStyles.css';  
 
 export default function Flashcard() {
   const [flashcards, setFlashcards] = useState([]);
@@ -41,23 +42,24 @@ export default function Flashcard() {
 
   return (
     <Container maxWidth="md">
-      <Grid container spacing={3} sx={{ mt: 4 }}>
+      <Typography variant="h4" component="h1" sx={{ mt: 4, mb: 2 }}>
+        Flashcards
+      </Typography>
+      <Grid container spacing={3}>
         {flashcards.map((flashcard) => (
           <Grid item xs={12} sm={6} md={4} key={flashcard.id}>
             <Card>
               <CardActionArea onClick={() => handleCardClick(flashcard.id)}>
                 <CardContent>
-                  <Box sx={{ /* Styling for flip animation */ }}>
-                    <div>
-                      <div>
-                        <Typography variant="h5" component="div">
-                          {flashcard.front}
-                        </Typography>
+                  <Box className={`flashcard ${flipped[flashcard.id] ? 'flipped' : ''}`}>
+                    <div className="flashcard-inner">
+                      <div className="flashcard-front">
+                        <Typography variant="h6">Front:</Typography>
+                        <Typography>{flashcard.front}</Typography>
                       </div>
-                      <div>
-                        <Typography variant="h5" component="div">
-                          {flashcard.back}
-                        </Typography>
+                      <div className="flashcard-back">
+                        <Typography variant="h6">Back:</Typography>
+                        <Typography>{flashcard.back}</Typography>
                       </div>
                     </div>
                   </Box>

@@ -1,16 +1,19 @@
 'use client';
+
 import { useState } from 'react';
-import { Container, TextField, Button, Typography, Box, Grid, Card, CardContent, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { Container, TextField, Button, Typography, Box, Grid, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { collection, doc, writeBatch, getDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';  
 import { useUser } from '@clerk/nextjs';
+import Flashcard from '../flashcard/page';  
+import '../flashcard/flashcardStyles.css'; 
 
 export default function Generate() {
   const [text, setText] = useState('');
   const [flashcards, setFlashcards] = useState([]);
   const [setName, setSetName] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
   const { user } = useUser();
 
   const handleSubmit = async () => {
@@ -19,7 +22,7 @@ export default function Generate() {
       return;
     }
 
-    setLoading(true);
+    setLoading(true); 
 
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -32,9 +35,9 @@ export default function Generate() {
           model: 'gpt-3.5-turbo',
           messages: [
             { role: 'system', content: 'You are a helpful assistant.' },
-            { role: 'user', content: `Generate flashcards for the following topic: ${text}` }
+            { role: 'user', content: `Generate at least 6 flashcards for the following topic: ${text}` }
           ],
-          max_tokens: 150,
+          max_tokens: 300, 
         }),
       });
 
@@ -45,7 +48,7 @@ export default function Generate() {
       const data = await response.json();
       const flashcardsText = data.choices[0]?.message?.content?.trim() || 'No response from AI.';
 
-
+     
       const flashcardsData = flashcardsText.split('\n').reduce((acc, curr, i, arr) => {
         if (curr.startsWith('Q:')) {
           acc.push({ front: curr.slice(3).trim(), back: arr[i + 1]?.slice(3).trim() });
@@ -53,7 +56,10 @@ export default function Generate() {
         return acc;
       }, []);
 
-      setFlashcards(flashcardsData);
+    
+      const flashcardsToDisplay = flashcardsData.slice(0, 6);
+
+      setFlashcards(flashcardsToDisplay);
     } catch (error) {
       console.error('Error generating flashcards:', error);
       alert('An error occurred while generating flashcards. Please try again.');
@@ -134,14 +140,7 @@ export default function Generate() {
           <Grid container spacing={2}>
             {flashcards.map((flashcard, index) => (
               <Grid item xs={12} sm={6} md={4} key={index}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6">Front:</Typography>
-                    <Typography>{flashcard.front}</Typography>
-                    <Typography variant="h6" sx={{ mt: 2 }}>Back:</Typography>
-                    <Typography>{flashcard.back}</Typography>
-                  </CardContent>
-                </Card>
+                <Flashcard front={flashcard.front} back={flashcard.back} />
               </Grid>
             ))}
           </Grid>

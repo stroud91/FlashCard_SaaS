@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Container, Grid, Card, CardActionArea, CardContent, Typography } from '@mui/material';
 import { useUser } from '@clerk/nextjs';
 import { collection, doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebaseConfig';  // Ensure you have the Firebase configuration
+import { db } from '../firebaseConfig';
 
 export default function Flashcards() {
   const [flashcardSets, setFlashcardSets] = useState([]);
@@ -34,7 +34,10 @@ export default function Flashcards() {
 
   return (
     <Container maxWidth="md">
-      <Grid container spacing={3} sx={{ mt: 4 }}>
+      <Typography variant="h4" component="h1" sx={{ mt: 4, mb: 2 }}>
+        Your Flashcard Sets
+      </Typography>
+      <Grid container spacing={3}>
         {flashcardSets.map((flashcardSet, index) => (
           <Grid item xs={12} sm={6} md={4} key={index}>
             <Card>
