@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, TextField, Button, Typography, Box, Grid, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { collection, doc, writeBatch, getDoc } from 'firebase/firestore';
-import { db } from '../../config/firebase';  
+import { db } from '../../config/firebase';
 import { useUser } from '@clerk/nextjs';
-import Flashcard from '../flashcard/page';  
-import '../flashcard/flashcardStyles.css'; 
+import Flashcard from '../flashcard/page';
+import '../flashcard/flashcardStyles.css';
 
 export default function Generate() {
   const [text, setText] = useState('');
@@ -21,9 +21,9 @@ export default function Generate() {
       alert('Please enter some text to generate flashcards.');
       return;
     }
-  
-    setLoading(true); // Start loading
-  
+
+    setLoading(true);
+
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -35,50 +35,61 @@ export default function Generate() {
           model: 'gpt-3.5-turbo',
           messages: [
             { role: 'system', content: 'You are a helpful assistant.' },
-            { role: 'user', content: `Generate at least 6 flashcards for the following topic: ${text}` }
+            {
+              role: 'user',
+              content: `Generate at least 6 flashcards for the following topic: ${text}. Each flashcard should be formatted as follows:
+              Front: [Term]
+              Back: [Definition]`
+            }
           ],
-          max_tokens: 300, // Increase token limit to get more content
+          max_tokens: 300,
         }),
       });
-  
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-  
+
       const data = await response.json();
       const flashcardsText = data.choices[0]?.message?.content?.trim() || 'No response from AI.';
-  
-      console.log('Flashcards Text:', flashcardsText); // Debugging output
-  
-      // Enhanced parsing logic
-      const flashcardsData = [];
-      const lines = flashcardsText.split('\n').map(line => line.trim());
-  
-      for (let i = 0; i < lines.length; i++) {
-        if (lines[i].startsWith('Front:')) {
-          const front = lines[i].replace('Front:', '').trim();
-          const back = lines[i + 1]?.startsWith('Back:') ? lines[i + 1].replace('Back:', '').trim() : '';
-          if (front && back) {
-            flashcardsData.push({ front, back });
-          }
-        }
+
+      console.log('Flashcards Text:', flashcardsText);
+
+      const flashcardsData = parseFlashcards(flashcardsText);
+
+      console.log('Parsed Flashcards:', flashcardsData);
+
+      if (flashcardsData.length === 0) {
+        alert('No flashcards could be parsed. Please try again.');
+      } else {
+        const flashcardsToDisplay = flashcardsData.slice(0, 6);
+        setFlashcards(flashcardsToDisplay);
       }
-  
-      console.log('Parsed Flashcards:', flashcardsData); // Debugging output
-  
-      // Ensure at least 6 flashcards
-      const flashcardsToDisplay = flashcardsData.slice(0, 6);
-  
-      setFlashcards(flashcardsToDisplay);
+
+      setLoading(false);
     } catch (error) {
       console.error('Error generating flashcards:', error);
       alert('An error occurred while generating flashcards. Please try again.');
-    } finally {
-      setLoading(false); // End loading
+      setLoading(false);
     }
   };
-  
 
+  const parseFlashcards = (flashcardsText) => {
+    const flashcardsData = [];
+    const lines = flashcardsText.split('\n').map(line => line.trim());
+
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].startsWith('Front:')) {
+        const front = lines[i].replace('Front:', '').trim();
+        const back = lines[i + 1]?.startsWith('Back:') ? lines[i + 1].replace('Back:', '').trim() : '';
+        if (front && back) {
+          flashcardsData.push({ front, back });
+        }
+      }
+    }
+
+    return flashcardsData;
+  };
 
   const handleOpenDialog = () => setDialogOpen(true);
   const handleCloseDialog = () => setDialogOpen(false);
@@ -139,7 +150,7 @@ export default function Generate() {
           color="primary"
           onClick={handleSubmit}
           fullWidth
-          disabled={loading} 
+          disabled={loading}
         >
           {loading ? 'Generating...' : 'Generate Flashcards'}
         </Button>
