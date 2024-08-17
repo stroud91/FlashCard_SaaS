@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Container, Grid, Card, CardActionArea, CardContent, Typography } from '@mui/material';
 import { useUser } from '@clerk/nextjs';
 import { collection, doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { db } from '../../config/firebase';
 
 export default function Flashcards() {
   const [flashcardSets, setFlashcardSets] = useState([]);
