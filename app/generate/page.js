@@ -8,7 +8,7 @@ import { useUser } from '@clerk/nextjs';
 import {Flashcard} from '../flashcard/page';
 import '../flashcard/flashcardStyles.css';
 
-export function Generate() {
+const Generate = () => {
   const [text, setText] = useState('');
   const [flashcards, setFlashcards] = useState([]);
   const [setName, setSetName] = useState('');
@@ -200,3 +200,5 @@ export function Generate() {
     </Container>
   );
 }
+
+export default Generate;

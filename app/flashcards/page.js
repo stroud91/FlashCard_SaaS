@@ -7,7 +7,7 @@ import { useUser } from '@clerk/nextjs';
 import { collection, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 
-export  function Flashcards() {
+function Flashcards() {
   const [flashcardSets, setFlashcardSets] = useState([]);
   const { user } = useUser();
   const router = useRouter();
@@ -55,3 +55,5 @@ export  function Flashcards() {
     </Container>
   );
 }
+
+export default Flashcards;
