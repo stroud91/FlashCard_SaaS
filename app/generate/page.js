@@ -5,10 +5,10 @@ import { Container, TextField, Button, Typography, Box, Grid, Dialog, DialogActi
 import { collection, doc, writeBatch, getDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { useUser } from '@clerk/nextjs';
-import Flashcard from '../flashcard/page';
+import {Flashcard} from '../flashcard/page';
 import '../flashcard/flashcardStyles.css';
 
-export default function Generate() {
+export function Generate() {
   const [text, setText] = useState('');
   const [flashcards, setFlashcards] = useState([]);
   const [setName, setSetName] = useState('');
